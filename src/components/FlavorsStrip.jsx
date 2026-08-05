@@ -1,12 +1,18 @@
 import React from 'react'
+import chocolateImg from '../assets/chocolate.png'
+import roseImg from '../assets/rose gulakand.png'
+import kesarImg from '../assets/kesar badam.png'
+import pistachioImg from '../assets/pisthachio.png'
+import mangoImg from '../assets/mango fusion.png'
+import vanillaImg from '../assets/venilla.png'
 
 const flavors = [
-  { name: 'Original Chocolate', color: '#1e0e05', text: '#f5e6d3', icon: '🍫' },
-  { name: 'Rose Gulkand', color: '#f2c4ce', text: '#1e0e05', icon: '🌹' },
-  { name: 'Kesar Badam', color: '#e8a020', text: '#1e0e05', icon: '✨' },
-  { name: 'Pistachio Delight', color: '#8db87a', text: '#1e0e05', icon: '🍃' },
-  { name: 'Mango Fusion', color: '#f5c842', text: '#1e0e05', icon: '🥭' },
-  { name: 'Vanilla', color: '#f5f0e8', text: '#1e0e05', icon: '🍦' },
+  { name: 'Original Chocolate', color: '#1e0e05', text: '#f5e6d3', img: chocolateImg },
+  { name: 'Rose Gulkand', color: '#f2c4ce', text: '#1e0e05', img: roseImg },
+  { name: 'Kesar Badam', color: '#e8a020', text: '#1e0e05', img: kesarImg },
+  { name: 'Pistachio Delight', color: '#8db87a', text: '#1e0e05', img: pistachioImg },
+  { name: 'Mango Fusion', color: '#f5c842', text: '#1e0e05', img: mangoImg },
+  { name: 'Vanilla', color: '#f5f0e8', text: '#1e0e05', img: vanillaImg },
 ]
 
 const FlavorsStrip = () => {
@@ -16,13 +22,9 @@ const FlavorsStrip = () => {
         <div className="flavors-scroll-container">
           <div className="flavors-track">
             {flavors.map((flavor, index) => (
-              <div
-                key={index}
-                className="flavor-card"
-                style={{ backgroundColor: flavor.color, color: flavor.text }}
-              >
-                <div className="flavor-icon">{flavor.icon}</div>
-                <h3 className="flavor-name">{flavor.name}</h3>
+              <div key={index} className="flavor-card">
+                <img src={flavor.img} alt={flavor.name} className="flavor-img" />
+                <h3 className="flavor-name" style={{ color: flavor.text, backgroundColor: flavor.color }}>{flavor.name}</h3>
               </div>
             ))}
           </div>
@@ -51,12 +53,8 @@ const FlavorsStrip = () => {
           min-width: 200px;
           height: 250px;
           border-radius: 20px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 30px;
-          text-align: center;
+          overflow: hidden;
+          position: relative;
           box-shadow: 0 10px 30px rgba(0,0,0,0.05);
           transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
           flex-shrink: 0;
@@ -67,18 +65,26 @@ const FlavorsStrip = () => {
           box-shadow: 0 20px 40px rgba(0,0,0,0.15);
         }
 
-        .flavor-icon {
-          font-size: 3rem;
-          margin-bottom: 20px;
+        .flavor-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
         }
 
         .flavor-name {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
           font-family: var(--font-body);
           font-weight: 700;
           text-transform: uppercase;
           letter-spacing: 1px;
           font-size: 0.9rem;
-          color: inherit;
+          text-align: center;
+          padding: 10px;
+          margin: 0;
         }
 
         @media (max-width: 768px) {

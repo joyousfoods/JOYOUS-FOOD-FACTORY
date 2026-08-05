@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import honeyDryFruitSingle from '../assets/Honey_Dry_fruit mix(singlre product).png';
+import honeyDryFruitPack from '../assets/pac of 18 chocolates.jpeg';
 import { Plus, Minus, ShoppingCart, ChevronRight, X, Star, Zap, Pencil, Check, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
@@ -17,6 +19,8 @@ const domesticProducts = [
   { id: 'dom-pista', name: 'Pista Flavour', pack: 'Pack of 1 × 25 pcs', price: 625, image: '/2/B (157) copy.jpg' },
   { id: 'dom-vanilla', name: 'Vanilla Flavour', pack: 'Pack of 1 × 25 pcs', price: 625, image: '/5/B (352) copy.jpg', tag: 'New' },
   { id: 'dom-kesar', name: 'Kesar Badam Flavour', pack: 'Pack of 1 × 25 pcs', price: 625, image: '/4/B (292) copy.jpg' },
+  { id: 'dom-honey-single', name: 'Honey Dry Fruit Mix', pack: 'Single Chocolate', price: 25, image: honeyDryFruitSingle, tag: 'New' },
+  { id: 'dom-honey-pack', name: 'Honey Dry Fruit Mix', pack: 'Pack of 18', price: 450, image: honeyDryFruitPack, tag: 'New' },
 ];
 
 

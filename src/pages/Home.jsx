@@ -1,5 +1,8 @@
 import React from 'react'
 import FlavorsStrip from '../components/FlavorsStrip'
+import signatureProduct from '../assets/signature product.png'
+import honeyDryFruitSingle from '../assets/Honey_Dry_fruit mix(singlre product).png'
+import honeyDryFruitPack from '../assets/pac of 18 chocolates.jpeg'
 
 const Home = () => {
   return (
@@ -19,11 +22,10 @@ const Home = () => {
             </div>
           </div>
           <div className="hero-image-container fade-in">
-            <img
-              src="/assets/hero-product.png"
-              alt="Geometric chocolate beedas"
-              className="hero-img float-anim"
-            />
+            <div className="hero-imgs-stack">
+              <img src={signatureProduct} alt="Signature Product" className="hero-img hero-img-back float-anim" />
+              <img src={honeyDryFruitPack} alt="Honey Dry Fruit Mix Pack of 18" className="hero-img hero-img-front float-anim-delay" />
+            </div>
           </div>
         </div>
       </section>
@@ -57,6 +59,36 @@ const Home = () => {
               className="legacy-img"
             />
             <div className="gold-border-accent"></div>
+          </div>
+        </div>
+      </section>
+
+      {/* Honey Dry Fruit Mix Section */}
+      <section className="honey-section section" style={{ backgroundColor: 'white' }}>
+        <div className="container">
+          <div className="text-center" style={{ marginBottom: '40px' }}>
+            <span className="label-caps">NEW ARRIVAL</span>
+            <h2 className="section-title">Honey Dry Fruit Mix</h2>
+            <p className="page-subtitle">A rich blend of premium dry fruits coated in pure honey — available in two variants.</p>
+          </div>
+          <div className="honey-grid">
+            <div className="honey-card">
+              <img src={honeyDryFruitSingle} alt="Honey Dry Fruit Mix Single" />
+              <div className="honey-card-info">
+                <h3>Single Chocolate</h3>
+                <span className="honey-price">₹25</span>
+              </div>
+            </div>
+            <div className="honey-card">
+              <img src={honeyDryFruitPack} alt="Honey Dry Fruit Mix Pack of 18" />
+              <div className="honey-card-info">
+                <h3>Pack of 18</h3>
+                <span className="honey-price">₹450</span>
+              </div>
+            </div>
+          </div>
+          <div className="text-center" style={{ marginTop: '30px' }}>
+            <a href="/products" className="gold-button">Order Now</a>
           </div>
         </div>
       </section>
@@ -159,9 +191,36 @@ const Home = () => {
           gap: 20px;
         }
 
-        .hero-img {
+        .hero-imgs-stack {
+          position: relative;
           width: 100%;
+          height: 420px;
+        }
+
+        .hero-img-back {
+          position: absolute;
+          width: 75%;
+          top: 0;
+          right: 0;
           filter: drop-shadow(0 20px 50px rgba(214, 0, 141, 0.4));
+        }
+
+        .hero-img-front {
+          position: absolute;
+          width: 55%;
+          bottom: 0;
+          left: 0;
+          filter: drop-shadow(0 20px 40px rgba(0,0,0,0.3));
+        }
+
+        .float-anim-delay {
+          animation: float 4s ease-in-out infinite;
+          animation-delay: 1s;
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-12px); }
         }
 
         .legacy { background-color: var(--section-bg); }
@@ -211,6 +270,59 @@ const Home = () => {
           width: 60px; height: 60px;
           border-top: 3px solid var(--accent-gold);
           border-left: 3px solid var(--accent-gold);
+        }
+
+        .honey-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 30px;
+          max-width: 700px;
+          margin: 0 auto;
+        }
+
+        .honey-card {
+          border-radius: 20px;
+          overflow: hidden;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+          transition: transform 0.4s ease, box-shadow 0.4s ease;
+          background: white;
+        }
+
+        .honey-card:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .honey-card img {
+          width: 100%;
+          aspect-ratio: 1;
+          object-fit: cover;
+          display: block;
+        }
+
+        .honey-card-info {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 16px 20px;
+          background: white;
+        }
+
+        .honey-card-info h3 {
+          font-size: 1rem;
+          font-weight: 700;
+          color: #1a1a1a;
+          margin: 0;
+        }
+
+        .honey-price {
+          font-size: 1.1rem;
+          font-weight: 900;
+          color: var(--accent-gold);
+        }
+
+        @media (max-width: 480px) {
+          .honey-grid { grid-template-columns: 1fr; max-width: 320px; }
         }
 
         .marquee-wrapper {
