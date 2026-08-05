@@ -10,39 +10,27 @@ const Navbar = () => {
   const { cartCount } = useCart()
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50)
-    }
-    window.addEventListener('scroll', handleScroll)
+    const handleScroll = () => setIsScrolled(window.scrollY > 40)
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  useEffect(() => { setIsMenuOpen(false) }, [location])
 
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Products', path: '/products' },
     { name: 'About', path: '/about' },
-    { name: 'Gallery', path: '/gallery' },
     { name: 'Contact', path: '/contact' },
   ]
 
-  // Pages with a dark hero section where the navbar should start transparent
-  const isLightHero = ['/', '/about'].includes(location.pathname)
-
-  // If we're not on a hero page, always apply the scrolled (dark background) styling
-  const forceScrolled = isScrolled || !isLightHero
-
   return (
-    <nav className={`navbar ${forceScrolled ? 'scrolled' : ''} nav-light`}>
+    <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`}>
       <div className="nav-container">
         <Link to='/' className="navbar-logo-link">
-          <img
-            src="/logo-removebg-preview.png"
-            alt='Joyous Food Factory'
-            className="navbar-logo-img"
-          />
+          <img src="/logo-removebg-preview.png" alt='Joyous Food Factory' className="navbar-logo-img" />
         </Link>
 
-        {/* Desktop Menu */}
         <div className="nav-links">
           {navLinks.map((link) => (
             <Link
@@ -53,27 +41,40 @@ const Navbar = () => {
               {link.name}
             </Link>
           ))}
-          <Link to="/products" className="nav-cart-btn">
-            <ShoppingCart size={20} />
+          <Link to="/products" className="nav-cart-btn" aria-label="Cart">
+            <ShoppingCart size={18} />
             {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
           </Link>
         </div>
 
-        {/* Mobile Toggle & Action */}
         <div className="mobile-actions">
-          <Link to="/products" className="nav-cart-btn mobile-only">
-            <ShoppingCart size={20} />
+          <Link to="/products" className="nav-cart-btn" aria-label="Cart">
+            <ShoppingCart size={18} />
             {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
           </Link>
-          <button className="mobile-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          <button className="mobile-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Menu">
+            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Overlay */}
+      {isMenuOpen && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 998, backdropFilter: 'blur(4px)' }}
+          onClick={() => setIsMenuOpen(false)}
+        />
+      )}
+
       <div className={`mobile-menu ${isMenuOpen ? 'open' : ''}`}>
         <div className="mobile-menu-inner">
+          <button
+            onClick={() => setIsMenuOpen(false)}
+            style={{ position: 'absolute', top: 24, right: 24, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', color: 'white', width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+          >
+            <X size={18} />
+          </button>
+
           <div className="mobile-nav-links">
             {navLinks.map((link) => (
               <Link
@@ -89,13 +90,13 @@ const Navbar = () => {
 
           <div className="mobile-menu-footer">
             <div className="mobile-contact-info">
-              <p><MapPin size={16} /> KPHB, Hyderabad</p>
-              <p><Phone size={16} /> +91 98485 74748</p>
-              <p><Mail size={16} /> joyousfoodshyd@gmail.com</p>
+              <p><MapPin size={14} /> KPHB, Hyderabad</p>
+              <p><Phone size={14} /> +91 98485 74748</p>
+              <p><Mail size={14} /> joyousfoodshyd@gmail.com</p>
             </div>
             <div className="mobile-socials">
-              <a href="#" className="social-icon"><Instagram size={20} /></a>
-              <a href="https://wa.me/919848574748" className="social-icon"><Phone size={20} /></a>
+              <a href="https://www.instagram.com/joyous_food_factory" target="_blank" rel="noopener noreferrer" className="social-icon"><Instagram size={16} /></a>
+              <a href="https://wa.me/919848574748" className="social-icon"><Phone size={16} /></a>
             </div>
           </div>
         </div>

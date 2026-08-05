@@ -75,7 +75,7 @@ const Home = () => {
             <div className="honey-card">
               <img src={honeyDryFruitSingle} alt="Honey Dry Fruit Mix Single" />
               <div className="honey-card-info">
-                <h3>Single Chocolate</h3>
+                <h3>Single Piece</h3>
                 <span className="honey-price">₹25</span>
               </div>
             </div>
