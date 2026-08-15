@@ -229,59 +229,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Offers ───────────────────────────────────────── */}
-      {(coupons.data?.items?.length > 0 || offers.data?.items?.length > 0) && (
-        <section className="section section--cream">
-          <div className="container">
-            {coupons.data?.items?.length > 0 && (
-              <>
-                <div className="section-head">
-                  <div>
-                    <span className="eyebrow">Save more</span>
-                    <h2 className="section-title">Current offers</h2>
-                    <p className="section-subtitle">
-                      Apply any of these at checkout. The discount is calculated on your cart.
-                    </p>
-                  </div>
-                  <Link to="/offers" className="rail__viewall">
-                    All offers <ArrowRight size={15} />
-                  </Link>
-                </div>
-
-                <div className="coupon-grid">
-                  {coupons.data.items.slice(0, 4).map((coupon) => (
-                    <div key={coupon.id} className="coupon-card">
-                      <div className="coupon-card__tag">
-                        <Tag size={15} />
-                      </div>
-                      <div className="coupon-card__body">
-                        <span className="coupon-card__code">{coupon.code}</span>
-                        <p>{coupon.description}</p>
-                        {coupon.minOrderPaise > 0 && (
-                          <small>Minimum order {formatPrice(coupon.minOrderPaise)}</small>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {offers.data?.items?.length > 0 && (
-              <div style={{ marginTop: 'var(--space-16)' }}>
-                <ProductRail
-                  eyebrow="Limited time"
-                  title="On offer now"
-                  products={offers.data.items}
-                  loading={offers.loading}
-                  viewAllTo="/shop?onOffer=true"
-                />
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
       {/* ── Gifting banner ───────────────────────────────── */}
       <section className="gifting-banner">
         <div className="container gifting-banner__grid">
