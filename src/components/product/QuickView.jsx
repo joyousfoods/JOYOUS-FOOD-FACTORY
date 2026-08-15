@@ -101,7 +101,7 @@ export function QuickView({ product, open, onClose }) {
             {shown.lowStock && <Badge variant="warning">Only {shown.stock} left</Badge>}
           </div>
 
-          {shown.inStock ? (
+          {shown.inStock !== false ? (
             <>
               <div className="quick-view__qty">
                 <span>Quantity</span>

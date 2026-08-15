@@ -19,6 +19,15 @@ function ProductCardBase({ product, onQuickView, eager = false, compact = false 
   const busy = cart.isPending?.(product.id) || false;
   const saved = wishlist.has(product.id);
 
+  const inStock = product.inStock !== false;
+  const pricePaise = product.pricePaise ?? (product.price || 0) * 100;
+  const mrpPaise = product.mrpPaise ?? (product.mrp || product.price || 0) * 100;
+  const discountPercent = product.discountPercent ?? (
+    product.mrp > product.price
+      ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
+      : 0
+  );
+
   const handleAdd = (event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -41,7 +50,7 @@ function ProductCardBase({ product, onQuickView, eager = false, compact = false 
     <article className={`product-card ${compact ? 'product-card--compact' : ''}`}>
       <Link to={`/product/${product.slug}`} className="product-card__media">
         <Image
-          src={product.imageUrl}
+          src={product.image || product.imageUrl}
           alt={product.name}
           ratio="1"
           eager={eager}
@@ -49,8 +58,8 @@ function ProductCardBase({ product, onQuickView, eager = false, compact = false 
         />
 
         <div className="product-card__badges">
-          {product.discountPercent > 0 && (
-            <span className="discount-badge">{product.discountPercent}% OFF</span>
+          {discountPercent > 0 && (
+            <span className="discount-badge">{discountPercent}% OFF</span>
           )}
           <ProductBadge badge={product.badge} />
         </div>
@@ -78,7 +87,7 @@ function ProductCardBase({ product, onQuickView, eager = false, compact = false 
           )}
         </div>
 
-        {!product.inStock && (
+        {!inStock && (
           <div className="product-card__soldout">
             <span>Sold out</span>
           </div>
@@ -88,7 +97,7 @@ function ProductCardBase({ product, onQuickView, eager = false, compact = false 
       <div className="product-card__body">
         <div className="product-card__meta">
           {product.isVeg && <VegMark />}
-          <span className="product-card__category">{product.category?.name}</span>
+          <span className="product-card__category">{product.category?.name || product.category}</span>
           {product.ratingCount > 0 && <Rating value={product.ratingAvg} chip />}
         </div>
 
@@ -100,12 +109,12 @@ function ProductCardBase({ product, onQuickView, eager = false, compact = false 
 
         <div className="product-card__footer">
           <PriceBlock
-            pricePaise={product.pricePaise}
-            mrpPaise={product.mrpPaise}
-            discountPercent={product.discountPercent}
+            pricePaise={pricePaise}
+            mrpPaise={mrpPaise}
+            discountPercent={discountPercent}
           />
 
-          {product.inStock ? (
+          {inStock ? (
             quantity > 0 ? (
               <div className="stepper stepper--sm">
                 <button
