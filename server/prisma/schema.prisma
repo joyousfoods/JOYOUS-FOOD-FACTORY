@@ -1,0 +1,463 @@
+// Joyous Food Factory — database schema
+//
+// Provider note: this schema deliberately avoids Postgres-only types
+// (no native enums, no scalar lists) so the `provider` below can be
+// switched to "sqlite" for a quick local run without touching models.
+// Status values are plain strings validated at the application layer
+// against the constants in src/constants/index.js.
+//
+// Money is stored as INTEGER PAISE everywhere (₹1 = 100 paise).
+// Never store money as a float.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────────
+// Users & auth
+// ─────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  phone        String?
+  passwordHash String
+  role         String   @default("CUSTOMER") // CUSTOMER | ADMIN
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  addresses     Address[]
+  orders        Order[]
+  cart          Cart?
+  wishlistItems WishlistItem[]
+  notifications Notification[]
+  redemptions   CouponRedemption[]
+  refreshTokens RefreshToken[]
+  reviews       Review[]
+
+  @@index([email])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────
+// Catalogue
+// ─────────────────────────────────────────────
+
+model Category {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  imageUrl    String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+
+  @@index([slug])
+}
+
+model Product {
+  id               String  @id @default(cuid())
+  slug             String  @unique
+  name             String
+  shortDescription String?
+  description      String?
+  brand            String  @default("Joyous Food Factory")
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  // Money in paise
+  mrpPaise   Int
+  pricePaise Int
+
+  imageUrl String
+  images   Json? // string[] of additional gallery images
+
+  // Fulfilment
+  stock         Int     @default(0)
+  trackStock    Boolean @default(true)
+  freeShipping  Boolean @default(false)
+  tier          String  @default("RETAIL") // RETAIL | BULK
+  orderMultiple Int     @default(1) // BULK products must be ordered in multiples of this
+
+  // Merchandising
+  isActive     Boolean @default(true)
+  isFeatured   Boolean @default(false)
+  isBestSeller Boolean @default(false)
+  isNewArrival Boolean @default(false)
+  badge        String? // "Bestseller" | "New" | "Classic" | ...
+  salesCount   Int     @default(0)
+  sortOrder    Int     @default(0)
+
+  // Food product attributes — nullable on purpose.
+  // The UI hides any section whose value is null so we never
+  // display invented ingredient / nutrition information.
+  packLabel   String? // "Pack of 1 × 25 pcs"
+  pieces      Int?
+  weightGrams Int?
+  flavour     String?
+  shelfLife   String?
+  storage     String?
+  ingredients Json? // string[]
+  allergens   Json? // string[]
+  nutrition   Json? // { per: "100g", values: [{ label, amount }] }
+  packaging   String?
+  isVeg       Boolean @default(true)
+
+  ratingAvg   Float @default(0)
+  ratingCount Int   @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  wishlistItems WishlistItem[]
+  reviews       Review[]
+
+  @@index([categoryId])
+  @@index([slug])
+  @@index([isActive, tier])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  userId    String?
+  authorName String
+  rating    Int
+  title     String?
+  body      String?
+  isApproved Boolean @default(true)
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([productId])
+}
+
+// ─────────────────────────────────────────────
+// Cart (supports guests via guestToken)
+// ─────────────────────────────────────────────
+
+model Cart {
+  id         String   @id @default(cuid())
+  userId     String?  @unique
+  guestToken String?  @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user  User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  productId String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId])
+  @@index([cartId])
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────
+// Addresses
+// ─────────────────────────────────────────────
+
+model Address {
+  id        String   @id @default(cuid())
+  userId    String
+  fullName  String
+  phone     String
+  line1     String
+  line2     String?
+  landmark  String?
+  city      String
+  state     String
+  pincode   String
+  type      String   @default("HOME") // HOME | WORK | OTHER
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────
+// Orders
+// ─────────────────────────────────────────────
+
+model Order {
+  id          String @id @default(cuid())
+  orderNumber String @unique // JFF-1024
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  addressId String?
+  address   Address? @relation(fields: [addressId], references: [id], onDelete: SetNull)
+
+  // Immutable snapshot — the address row may later be edited or deleted.
+  shippingSnapshot Json
+
+  customerName  String
+  customerPhone String
+  customerEmail String
+
+  // All money in paise, all computed server-side.
+  subtotalPaise Int
+  discountPaise Int @default(0)
+  deliveryPaise Int @default(0)
+  totalPaise    Int
+
+  couponCode String?
+
+  paymentMethod String // RAZORPAY | COD
+  paymentStatus String @default("PENDING") // PENDING | PAID | FAILED | REFUNDED
+  orderStatus   String @default("PENDING_PAYMENT") // PENDING_PAYMENT | PROCESSING | PACKED | SHIPPED | OUT_FOR_DELIVERY | DELIVERED | CANCELLED
+
+  razorpayOrderId   String? @unique
+  razorpayPaymentId String?
+
+  customerNote String?
+  giftMessage  String?
+  internalNote String?
+
+  placedAt    DateTime?
+  cancelledAt DateTime?
+  deliveredAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items        OrderItem[]
+  payments     Payment[]
+  events       OrderEvent[]
+  waLogs       WhatsAppNotificationLog[]
+  redemption   CouponRedemption?
+
+  @@index([userId])
+  @@index([orderStatus])
+  @@index([razorpayOrderId])
+}
+
+model OrderItem {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // Nullable: the product may be deleted later, the snapshot below survives.
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  // Snapshot at time of purchase
+  productName String
+  productSlug String
+  packLabel   String?
+  imageUrl    String?
+
+  unitPricePaise Int
+  unitMrpPaise   Int
+  quantity       Int
+  subtotalPaise  Int
+
+  @@index([orderId])
+}
+
+model Payment {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  provider          String // RAZORPAY | COD
+  providerOrderId   String?
+  providerPaymentId String? @unique
+  providerSignature String?
+
+  amountPaise      Int
+  currency         String  @default("INR")
+  status           String // CREATED | PAID | FAILED | REFUNDED
+  method           String?
+  signatureVerified Boolean @default(false)
+  errorCode        String?
+  errorDescription String?
+  rawPayload       Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+}
+
+model OrderEvent {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  status    String
+  note      String?
+  createdBy String? // "system" | userId | adminId
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+}
+
+// ─────────────────────────────────────────────
+// Coupons
+// ─────────────────────────────────────────────
+
+model Coupon {
+  id          String  @id @default(cuid())
+  code        String  @unique
+  description String?
+
+  type            String // PERCENT | FLAT | FREE_SHIPPING
+  value           Int // percent (0-100) or paise for FLAT
+  maxDiscountPaise Int?
+  minOrderPaise   Int    @default(0)
+
+  appliesTo   String @default("ALL") // ALL | CATEGORY | PRODUCT
+  categoryIds Json? // string[]
+  productIds  Json? // string[]
+
+  usageLimit   Int?
+  usedCount    Int  @default(0)
+  perUserLimit Int?
+
+  startsAt  DateTime  @default(now())
+  expiresAt DateTime?
+  isActive  Boolean   @default(true)
+  isPublic  Boolean   @default(true) // shown in the "Offers" list
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  redemptions CouponRedemption[]
+}
+
+model CouponRedemption {
+  id       String @id @default(cuid())
+  couponId String
+  coupon   Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
+
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  discountPaise Int
+  createdAt     DateTime @default(now())
+
+  @@index([couponId])
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────
+// Notifications & integration logs
+// ─────────────────────────────────────────────
+
+model Notification {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title   String
+  body    String
+  type    String  @default("GENERAL") // ORDER | OFFER | GENERAL
+  linkUrl String?
+  isRead  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+}
+
+/// One row per (order, template). The unique constraint is what makes
+/// WhatsApp delivery idempotent when Razorpay retries a webhook.
+model WhatsAppNotificationLog {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  template          String // NEW_ORDER | ORDER_SHIPPED | ...
+  recipient         String
+  status            String @default("PENDING") // PENDING | SENT | FAILED | SKIPPED
+  providerMessageId String?
+  payload           Json?
+  error             String?
+  attempts          Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([orderId, template])
+  @@index([status])
+}
+
+/// Deduplicates inbound gateway webhooks. Insert-before-process; a unique
+/// violation means we have already handled this delivery.
+model WebhookEvent {
+  id         String   @id @default(cuid())
+  provider   String // RAZORPAY
+  eventId    String // x-razorpay-event-id header
+  eventType  String?
+  payload    Json?
+  processedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  @@unique([provider, eventId])
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}

@@ -1,0 +1,155 @@
+/* ─────────────────────────────────────────────────────────────
+   Joyous Food Factory — design tokens
+
+   The brand palette is inherited from the previous site unchanged:
+   deep berry (#2B0018), gold (#D4AF37), cream (#FFF9F4), berry pink.
+   What is new is the scale around it — spacing, type, elevation and
+   state colours — so every component can be built from the same set.
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Brand (unchanged from the original site) ── */
+  --berry-900: #2b0018;
+  --berry-800: #3d0022;
+  --berry-700: #4b012a;
+  --berry-600: #6e003c;
+  --berry-500: #8f0050;
+  --berry-pink: #d6008d;
+
+  --gold-600: #b8952c;
+  --gold-500: #d4af37;
+  --gold-400: #e5c65c;
+  --gold-300: #f0d060;
+  --gold-100: #f7ecc9;
+
+  --cream: #fff9f4;
+  --cream-dark: #f7ede2;
+  --white: #ffffff;
+
+  /* Legacy aliases kept so any surviving markup still resolves. */
+  --hero-bg: var(--berry-900);
+  --hero-bg-2: var(--berry-700);
+  --accent: var(--berry-600);
+  --accent-gold: var(--gold-500);
+  --accent-gold-light: var(--gold-300);
+  --section-bg: var(--cream);
+  --footer-bg: #1a000f;
+  --text-charcoal: #1a0010;
+  --text-primary: var(--cream);
+
+  /* ── Neutrals ── */
+  --ink-900: #1a0010;
+  --ink-700: #4a3641;
+  --ink-500: #6f5c66;
+  --ink-400: #8d7d85;
+  --ink-300: #c4b8be;
+  --ink-200: #e4dbdf;
+  --ink-100: #f1ebee;
+
+  /* ── State ── */
+  --success: #1a7f4b;
+  --success-bg: #e7f6ee;
+  --warning: #a86400;
+  --warning-bg: #fdf3e2;
+  --danger: #b3261e;
+  --danger-bg: #fdecea;
+  --info: #1a5f8f;
+  --info-bg: #e8f2f9;
+
+  /* ── Type ── */
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-4xl: 3rem;
+  --text-5xl: 3.75rem;
+
+  /* ── Spacing (4px base) ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  --section-padding: 88px;
+  --section-padding-sm: 56px;
+  --container-max-width: 1280px;
+  --container-pad: 40px;
+
+  /* ── Radii ── */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
+  /* ── Elevation ── */
+  --shadow-xs: 0 1px 2px rgba(43, 0, 24, 0.06);
+  --shadow-sm: 0 2px 8px rgba(43, 0, 24, 0.07);
+  --shadow-md: 0 6px 20px rgba(43, 0, 24, 0.09);
+  --shadow-lg: 0 16px 40px rgba(43, 0, 24, 0.13);
+  --shadow-xl: 0 28px 70px rgba(43, 0, 24, 0.18);
+  --shadow-gold: 0 8px 24px rgba(212, 175, 55, 0.28);
+
+  /* ── Motion ──
+     Kept short and few. Long or elaborate transitions read as slow on
+     a product grid the customer is scanning quickly. */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 140ms;
+  --duration-base: 220ms;
+  --duration-slow: 380ms;
+  --transition: all var(--duration-base) var(--ease-out);
+
+  /* ── Layering ── */
+  --z-sticky: 100;
+  --z-header: 500;
+  --z-dropdown: 600;
+  --z-overlay: 900;
+  --z-drawer: 950;
+  --z-modal: 1000;
+  --z-toast: 1100;
+
+  --header-height: 72px;
+  --mobile-nav-height: 62px;
+}
+
+@media (max-width: 900px) {
+  :root {
+    --section-padding: 56px;
+    --section-padding-sm: 40px;
+    --container-pad: 20px;
+    --text-4xl: 2.25rem;
+    --text-5xl: 2.5rem;
+    --text-3xl: 1.875rem;
+    --header-height: 60px;
+  }
+}
+
+/* Respect the OS-level reduced-motion preference everywhere. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

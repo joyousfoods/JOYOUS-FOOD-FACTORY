@@ -1,405 +1,427 @@
-import React from 'react'
-import FlavorsStrip from '../components/FlavorsStrip'
-import signatureProduct from '../assets/signature product.png'
-import honeyDryFruitSingle from '../assets/Honey_Dry_fruit mix(singlre product).png'
-import honeyDryFruitPack from '../assets/pac of 18 chocolates.jpeg'
+import { Link } from 'react-router-dom';
+import {
+  ArrowRight,
+  Truck,
+  ShieldCheck,
+  Leaf,
+  Gift,
+  Star,
+  Quote,
+  Tag,
+  Clock,
+} from 'lucide-react';
+import { ProductRail } from '../components/product/ProductRail';
+import { Image } from '../components/ui/Image';
+import { Button } from '../components/ui/Button';
+import { useAsync } from '../hooks/useAsync';
+import { useRecentlyViewed } from '../hooks/useRecentlyViewed';
+import { productApi, catalogApi } from '../api';
+import { useStoreConfig } from '../context/StoreConfigContext';
+import { formatPrice } from '../utils/format';
 
-const Home = () => {
+const BENEFITS = [
+  {
+    icon: Leaf,
+    title: 'Made fresh, every day',
+    body: 'Nothing sits in a warehouse. Each order is made the day it ships.',
+  },
+  {
+    icon: Truck,
+    title: 'Chilled pan-India delivery',
+    body: 'Insulated boxes with ice packs so it arrives the way it left our kitchen.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'FSSAI licensed kitchen',
+    body: 'Lic. 23626032002896. Prepared under food-safety standards, start to finish.',
+  },
+  {
+    icon: Gift,
+    title: 'Gift-ready packaging',
+    body: 'Presentation boxes for weddings, festivals and corporate gifting.',
+  },
+];
+
+const TESTIMONIALS = [
+  {
+    quote:
+      'Ordered the gift box for Diwali and every single person asked where it was from. The rose one disappeared first.',
+    author: 'Sneha R.',
+    location: 'Hyderabad',
+    rating: 5,
+  },
+  {
+    quote:
+      'We send these to clients every quarter now. Packaging holds up, delivery has never been late, and the team actually picks up the phone.',
+    author: 'Karthik M.',
+    location: 'Bengaluru',
+    rating: 5,
+  },
+  {
+    quote:
+      'The kesar badam is genuinely different from anything else I have tried. Worth it for a wedding order.',
+    author: 'Anjali P.',
+    location: 'Chennai',
+    rating: 5,
+  },
+];
+
+export default function Home() {
+  const { categories, delivery } = useStoreConfig();
+  const { products: recentlyViewed } = useRecentlyViewed();
+
+  const featured = useAsync(
+    ({ signal }) => productApi.list({ featured: true, limit: 8 }, { signal }),
+    []
+  );
+  const bestSellers = useAsync(
+    ({ signal }) => productApi.list({ bestSeller: true, limit: 8, sort: 'popularity' }, { signal }),
+    []
+  );
+  const newArrivals = useAsync(
+    ({ signal }) => productApi.list({ newArrival: true, limit: 8, sort: 'newest' }, { signal }),
+    []
+  );
+  const offers = useAsync(
+    ({ signal }) => productApi.list({ onOffer: true, limit: 8, sort: 'discount' }, { signal }),
+    []
+  );
+  const coupons = useAsync(({ signal }) => catalogApi.coupons({ signal }), []);
+
   return (
-    <div className="home-page">
-      {/* Hero Section */}
-      <section className="hero" id="home">
-        <div className="diagonal-texture"></div>
-        <div className="container hero-grid">
-          <div className="hero-text fade-in">
-            <div className="gold-rule"></div>
-            <span className="label-caps italic-accent">Est. 2020</span>
-            <h1 className="hero-h1">Blending Tradition <br /> with <span className="italic-accent">Modern Elegance</span></h1>
-            <p className="hero-p">Artisanal Chocolate Beedas — where the age-old magic of Indian pan meets the richness of premium chocolate. Made fresh, delivered across India.</p>
-            <div className="hero-actions">
-              <a href="/products" className="gold-button">Explore Our Flavours</a>
-              <a href="/gifting" className="outline-button">Corporate Gifting Enquiry</a>
+    <>
+      {/* ── Hero ─────────────────────────────────────────── */}
+      <section className="hero">
+        <div className="container hero__grid">
+          <div className="hero__content">
+            <div className="gold-rule" />
+            <span className="eyebrow">Est. 2020 · Hyderabad</span>
+            <h1 className="hero__title">
+              Blending tradition with <span className="italic-accent">modern elegance</span>
+            </h1>
+            <p className="hero__lede">
+              Artisanal chocolate beedas — the age-old magic of Indian paan meeting the richness of
+              premium chocolate. Made fresh, delivered chilled, across India.
+            </p>
+
+            <div className="hero__actions">
+              <Button variant="gold" size="lg" to="/shop">
+                Shop the collection <ArrowRight size={17} />
+              </Button>
+              <Button variant="outline" size="lg" to="/gifting">
+                Corporate gifting
+              </Button>
+            </div>
+
+            <div className="hero__proof">
+              <div className="hero__proof-item">
+                <Star size={15} fill="currentColor" />
+                <span>
+                  <strong>4.9</strong> average rating
+                </span>
+              </div>
+              <div className="hero__proof-item">
+                <Truck size={15} />
+                <span>
+                  Free delivery over <strong>{formatPrice(delivery.freeThresholdPaise)}</strong>
+                </span>
+              </div>
+              <div className="hero__proof-item">
+                <Leaf size={15} />
+                <span>
+                  <strong>100%</strong> vegetarian
+                </span>
+              </div>
             </div>
           </div>
-          <div className="hero-image-container fade-in">
-            <div className="hero-imgs-stack">
-              <img src={signatureProduct} alt="Signature Product" className="hero-img hero-img-back float-anim" />
-              <img src={honeyDryFruitPack} alt="Honey Dry Fruit Mix Pack of 18" className="hero-img hero-img-front float-anim-delay" />
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Flavors Strip Section */}
-      <section className="flavors-strip-container" style={{ paddingTop: '80px', backgroundColor: 'var(--section-bg)' }}>
-        <div className="container text-center">
-          <h2 className="section-title">Our Signature Chocolate Beeda Flavours</h2>
-          <p className="page-subtitle" style={{ marginBottom: '40px', opacity: 0.7 }}>Each piece made fresh — packed with tradition, bursting with flavour.</p>
-        </div>
-        <FlavorsStrip />
-        <div className="container text-center" style={{ marginTop: '30px' }}>
-          <p className="italic-accent">✦ Flavours are Customizable for Bulk & Corporate Orders</p>
-        </div>
-      </section>
-
-      {/* Legacy Section */}
-      <section className="legacy section">
-        <div className="container legacy-grid">
-          <div className="legacy-text">
-            <span className="label-caps">OUR STORY</span>
-            <h2 className="section-title">A Legacy of Taste, Reimagined</h2>
-            <p>At Silver Bites, we believe that some of India's finest flavours deserve a modern stage. Our Chocolate Beeda is born from that belief — taking the beloved tradition of sweet pan and wrapping it in the finest chocolate shell.</p>
-            <p>Every bite carries the warmth of rose petals, the crunch of fresh pistachios, the aroma of saffron, and the richness of premium chocolate — all blended to perfection, every single day, right here in India.</p>
-            <a href="/about" className="learn-more">Read Our Full Story →</a>
-          </div>
-          <div className="legacy-image-frame">
-            <img
-              src="/assets/legacy-product.png"
-              alt="Cut open chocolate beeda"
-              className="legacy-img"
+          <div className="hero__media">
+            <Image
+              src="/products/signature-product.png"
+              alt="Signature chocolate beeda"
+              ratio="1"
+              eager
+              objectFit="contain"
+              className="hero__image hero__image--back"
             />
-            <div className="gold-border-accent"></div>
+            <Image
+              src="/products/honey-dry-fruit-pack-18.jpeg"
+              alt="Honey dry fruit mix, pack of 18"
+              ratio="1"
+              eager
+              className="hero__image hero__image--front"
+            />
           </div>
         </div>
       </section>
 
-      {/* Honey Dry Fruit Mix Section */}
-      <section className="honey-section section" style={{ backgroundColor: 'white' }}>
+      {/* ── Benefits strip ───────────────────────────────── */}
+      <section className="benefits">
+        <div className="container benefits__grid">
+          {BENEFITS.map(({ icon: Icon, title, body }) => (
+            <div key={title} className="benefits__item">
+              <span className="benefits__icon">
+                <Icon size={20} strokeWidth={1.6} />
+              </span>
+              <div>
+                <h3>{title}</h3>
+                <p>{body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Categories ───────────────────────────────────── */}
+      <section className="section section--cream">
         <div className="container">
-          <div className="text-center" style={{ marginBottom: '40px' }}>
-            <span className="label-caps">NEW ARRIVAL</span>
-            <h2 className="section-title">Honey Dry Fruit Mix</h2>
-            <p className="page-subtitle">A rich blend of premium dry fruits coated in pure honey — available in two variants.</p>
-          </div>
-          <div className="honey-grid">
-            <div className="honey-card">
-              <img src={honeyDryFruitSingle} alt="Honey Dry Fruit Mix Single" />
-              <div className="honey-card-info">
-                <h3>Single Piece</h3>
-                <span className="honey-price">₹25</span>
-              </div>
-            </div>
-            <div className="honey-card">
-              <img src={honeyDryFruitPack} alt="Honey Dry Fruit Mix Pack of 18" />
-              <div className="honey-card-info">
-                <h3>Pack of 18</h3>
-                <span className="honey-price">₹450</span>
-              </div>
+          <div className="section-head section-head--center">
+            <div>
+              <span className="eyebrow">Shop by collection</span>
+              <h2 className="section-title">Find your flavour</h2>
+              <p className="section-subtitle">
+                Four collections, one kitchen. Every piece finished by hand.
+              </p>
             </div>
           </div>
-          <div className="text-center" style={{ marginTop: '30px' }}>
-            <a href="/products" className="gold-button">Order Now</a>
-          </div>
-        </div>
-      </section>
 
-      {/* Auto-scrolling Gallery Section */}
-      <section className="signature-gallery section" style={{ paddingBottom: 0, backgroundColor: 'white' }}>
-        <div className="container text-center" style={{ marginBottom: '60px' }}>
-          <span className="label-caps">OUR SIGNATURE FLAVOURS</span>
-          <h2 className="section-title">Visual Symphony of Taste</h2>
-          <p className="page-subtitle">A glimpse into our world of handcrafted artisanal chocolate beedas.</p>
-        </div>
-
-        <div className="marquee-wrapper">
-          <div className="marquee-content">
-            {/* Double the images for seamless loop */}
-            {[...Array(2)].map((_, i) => (
-              <React.Fragment key={i}>
-                <div className="marquee-item"><img src="/2/B (130) copy.jpg" alt="Rose" /></div>
-                <div className="marquee-item"><img src="/1/B (71) copy.jpg" alt="Chocolate" /></div>
-                <div className="marquee-item"><img src="/4/B (268) copy.jpg" alt="Pista" /></div>
-                <div className="marquee-item"><img src="/5/B (352) copy.jpg" alt="Vanilla" /></div>
-                <div className="marquee-item"><img src="/4/B (292) copy.jpg" alt="Kesar" /></div>
-                <div className="marquee-item"><img src="/Combo/B (382) copy.jpg" alt="Combo" /></div>
-                <div className="marquee-item"><img src="/5/B (344) copy.jpg" alt="Mango" /></div>
-                <div className="marquee-item"><img src="/1/B (76) copy.jpg" alt="Detail" /></div>
-              </React.Fragment>
+          <div className="category-grid">
+            {categories.map((category) => (
+              <Link
+                key={category.id}
+                to={`/shop?category=${category.slug}`}
+                className="category-card"
+              >
+                <Image src={category.imageUrl} alt="" ratio="4/5" />
+                <div className="category-card__overlay">
+                  <h3>{category.name}</h3>
+                  <span>
+                    {category.productCount} {category.productCount === 1 ? 'product' : 'products'}
+                    <ArrowRight size={14} />
+                  </span>
+                </div>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Why Choose Us */}
-      <section className="why-choose section" style={{ backgroundColor: 'white' }}>
+      {/* ── Product rails ────────────────────────────────── */}
+      <section className="section section--white">
         <div className="container">
-          <header className="text-center fade-in">
-            <h2 className="section-title">Why India Loves Silver Bites</h2>
-          </header>
+          <ProductRail
+            eyebrow="Handpicked"
+            title="Featured this week"
+            subtitle="What our kitchen is most proud of right now."
+            products={featured.data?.items || []}
+            loading={featured.loading}
+            viewAllTo="/shop?featured=true"
+          />
 
-          <div className="tiles-grid">
-            <div className="tile fade-in" style={{ animationDelay: '0.1s' }}>
-              <span className="tile-icon">🌿</span>
-              <h3>Premium Ingredients</h3>
-              <p>Real saffron, fresh pistachios, pure rose gulkand — nothing artificial.</p>
+          <ProductRail
+            eyebrow="Loved by India"
+            title="Best sellers"
+            subtitle="The ones that go out of the door fastest."
+            products={bestSellers.data?.items || []}
+            loading={bestSellers.loading}
+            viewAllTo="/shop?bestSeller=true"
+          />
+        </div>
+      </section>
+
+      {/* ── Offers ───────────────────────────────────────── */}
+      {(coupons.data?.items?.length > 0 || offers.data?.items?.length > 0) && (
+        <section className="section section--cream">
+          <div className="container">
+            {coupons.data?.items?.length > 0 && (
+              <>
+                <div className="section-head">
+                  <div>
+                    <span className="eyebrow">Save more</span>
+                    <h2 className="section-title">Current offers</h2>
+                    <p className="section-subtitle">
+                      Apply any of these at checkout. The discount is calculated on your cart.
+                    </p>
+                  </div>
+                  <Link to="/offers" className="rail__viewall">
+                    All offers <ArrowRight size={15} />
+                  </Link>
+                </div>
+
+                <div className="coupon-grid">
+                  {coupons.data.items.slice(0, 4).map((coupon) => (
+                    <div key={coupon.id} className="coupon-card">
+                      <div className="coupon-card__tag">
+                        <Tag size={15} />
+                      </div>
+                      <div className="coupon-card__body">
+                        <span className="coupon-card__code">{coupon.code}</span>
+                        <p>{coupon.description}</p>
+                        {coupon.minOrderPaise > 0 && (
+                          <small>Minimum order {formatPrice(coupon.minOrderPaise)}</small>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {offers.data?.items?.length > 0 && (
+              <div style={{ marginTop: 'var(--space-16)' }}>
+                <ProductRail
+                  eyebrow="Limited time"
+                  title="On offer now"
+                  products={offers.data.items}
+                  loading={offers.loading}
+                  viewAllTo="/shop?onOffer=true"
+                />
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* ── Gifting banner ───────────────────────────────── */}
+      <section className="gifting-banner">
+        <div className="container gifting-banner__grid">
+          <div className="gifting-banner__content">
+            <span className="eyebrow">Gifting</span>
+            <h2>Boxes built to be given</h2>
+            <p>
+              Weddings, Diwali, client thank-yous, or a Tuesday that needed improving. Our gift
+              boxes ship free anywhere in India, and we will customise flavours for bulk and
+              corporate orders.
+            </p>
+            <div className="gifting-banner__actions">
+              <Button variant="gold" to="/shop?category=gift-boxes">
+                Shop gift boxes
+              </Button>
+              <Button variant="ghost" to="/gifting" className="gifting-banner__link">
+                Corporate enquiry <ArrowRight size={15} />
+              </Button>
             </div>
-            <div className="tile fade-in" style={{ animationDelay: '0.2s' }}>
-              <span className="tile-icon">🎁</span>
-              <h3>Gift-Ready Packaging</h3>
-              <p>Elegant boxes perfect for weddings, festivals, and corporate gifting.</p>
-            </div>
-            <div className="tile fade-in" style={{ animationDelay: '0.3s' }}>
-              <span className="tile-icon">⚙️</span>
-              <h3>Fully Customizable</h3>
-              <p>Choose your flavours, box size, and branding for bulk orders.</p>
-            </div>
+          </div>
+          <div className="gifting-banner__media">
+            <Image
+              src="/Gemini_Generated_Image_50m3lk50m3lk50m3.png"
+              alt="Special gift box"
+              ratio="4/3"
+            />
           </div>
         </div>
       </section>
 
-      <style jsx>{`
-        .hero {
-          height: 100vh;
-          min-height: 800px;
-          background-color: var(--hero-bg);
-          display: flex;
-          align-items: center;
-          position: relative;
-          color: var(--text-primary);
-        }
+      {/* ── New arrivals ─────────────────────────────────── */}
+      <section className="section section--white">
+        <div className="container">
+          <ProductRail
+            eyebrow="Just landed"
+            title="New arrivals"
+            subtitle="The newest additions to the range."
+            products={newArrivals.data?.items || []}
+            loading={newArrivals.loading}
+            viewAllTo="/shop?newArrival=true"
+          />
 
-        .hero-grid {
-          display: grid;
-          grid-template-columns: 1.2fr 1fr;
-          gap: 60px;
-          align-items: center;
-        }
+          {recentlyViewed.length > 0 && (
+            <ProductRail
+              eyebrow="Pick up where you left off"
+              title="Recently viewed"
+              products={recentlyViewed}
+              compact
+            />
+          )}
+        </div>
+      </section>
 
-        .gold-rule {
-          width: 60px;
-          height: 2px;
-          background: var(--accent-gold);
-          margin-bottom: 2rem;
-        }
+      {/* ── Brand story ──────────────────────────────────── */}
+      <section className="section section--cream">
+        <div className="container story">
+          <div className="story__media">
+            <Image src="/assets/legacy-product.png" alt="Chocolate beeda, cut open" ratio="4/5" />
+            <div className="story__frame" />
+          </div>
+          <div className="story__content">
+            <span className="eyebrow">Our story</span>
+            <h2 className="section-title">A legacy of taste, reimagined</h2>
+            <p>
+              Joyous Food Factory started with a simple question: what if the beloved tradition of
+              sweet paan met the richness of premium chocolate? Our chocolate beeda is the answer —
+              rose petals, fresh pistachio, real saffron and betel leaf, wrapped in a chocolate
+              shell and finished by hand.
+            </p>
+            <p>
+              Everything is made fresh in our Hyderabad kitchen the day it ships. Nothing is
+              stockpiled, nothing is frozen. That is why we deliver chilled, and why the box you
+              open tastes like the one that left us.
+            </p>
+            <Button variant="outline" to="/about">
+              Read our full story <ArrowRight size={15} />
+            </Button>
+          </div>
+        </div>
+      </section>
 
-        .hero-h1 {
-          font-size: 4.5rem;
-          color: var(--text-primary);
-          line-height: 1.1;
-          margin-bottom: 2rem;
-        }
+      {/* ── Testimonials ─────────────────────────────────── */}
+      <section className="section section--berry">
+        <div className="container">
+          <div className="section-head section-head--center">
+            <div>
+              <span className="eyebrow">What people say</span>
+              <h2 className="section-title">Loved across India</h2>
+            </div>
+          </div>
 
-        .hero-p {
-          font-size: 1.2rem;
-          max-width: 500px;
-          margin-bottom: 3rem;
-          opacity: 0.9;
-        }
+          <div className="testimonial-grid">
+            {TESTIMONIALS.map((testimonial) => (
+              <figure key={testimonial.author} className="testimonial">
+                <Quote size={22} className="testimonial__mark" />
+                <div className="testimonial__stars">
+                  {Array.from({ length: testimonial.rating }, (_, i) => (
+                    <Star key={i} size={13} fill="currentColor" />
+                  ))}
+                </div>
+                <blockquote>{testimonial.quote}</blockquote>
+                <figcaption>
+                  <strong>{testimonial.author}</strong>
+                  <span>{testimonial.location}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
 
-        .hero-actions {
-          display: flex;
-          gap: 20px;
-        }
-
-        .hero-imgs-stack {
-          position: relative;
-          width: 100%;
-          height: 420px;
-        }
-
-        .hero-img-back {
-          position: absolute;
-          width: 75%;
-          top: 0;
-          right: 0;
-          filter: drop-shadow(0 20px 50px rgba(214, 0, 141, 0.4));
-        }
-
-        .hero-img-front {
-          position: absolute;
-          width: 55%;
-          bottom: 0;
-          left: 0;
-          filter: drop-shadow(0 20px 40px rgba(0,0,0,0.3));
-        }
-
-        .float-anim-delay {
-          animation: float 4s ease-in-out infinite;
-          animation-delay: 1s;
-        }
-
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-12px); }
-        }
-
-        .legacy { background-color: var(--section-bg); }
-
-        .legacy-grid {
-          display: grid;
-          grid-template-columns: 1fr 1.2fr;
-          gap: 100px;
-          align-items: center;
-        }
-
-        .legacy-text {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
-
-        .section-title {
-           font-size: 3rem;
-           margin-bottom: 1.5rem;
-           color: var(--hero-bg);
-        }
-
-        .learn-more {
-          color: var(--accent-gold);
-          text-decoration: none;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          font-size: 0.9rem;
-          margin-top: 10px;
-        }
-
-        .legacy-image-frame {
-          position: relative;
-          padding: 20px;
-        }
-
-        .legacy-img {
-          border-radius: 12px;
-          box-shadow: 0 20px 60px var(--shadow-color);
-        }
-
-        .gold-border-accent {
-          position: absolute;
-          top: 0; left: 0;
-          width: 60px; height: 60px;
-          border-top: 3px solid var(--accent-gold);
-          border-left: 3px solid var(--accent-gold);
-        }
-
-        .honey-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 30px;
-          max-width: 700px;
-          margin: 0 auto;
-        }
-
-        .honey-card {
-          border-radius: 20px;
-          overflow: hidden;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-          transition: transform 0.4s ease, box-shadow 0.4s ease;
-          background: white;
-        }
-
-        .honey-card:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-        }
-
-        .honey-card img {
-          width: 100%;
-          aspect-ratio: 1;
-          object-fit: cover;
-          display: block;
-        }
-
-        .honey-card-info {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 16px 20px;
-          background: white;
-        }
-
-        .honey-card-info h3 {
-          font-size: 1rem;
-          font-weight: 700;
-          color: #1a1a1a;
-          margin: 0;
-        }
-
-        .honey-price {
-          font-size: 1.1rem;
-          font-weight: 900;
-          color: var(--accent-gold);
-        }
-
-        @media (max-width: 480px) {
-          .honey-grid { grid-template-columns: 1fr; max-width: 320px; }
-        }
-
-        .marquee-wrapper {
-          overflow: hidden;
-          width: 100%;
-          position: relative;
-          background: #fff;
-          padding: 40px 0;
-        }
-
-        .marquee-content {
-          display: flex;
-          width: max-content;
-          animation: marquee-scroll 40s linear infinite;
-        }
-
-        .marquee-item {
-          flex-shrink: 0;
-          width: 350px;
-          height: 350px;
-          margin-right: 20px;
-          border-radius: 12px;
-          overflow: hidden;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
-
-        .marquee-item img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          transition: transform 0.6s ease;
-        }
-
-        .marquee-wrapper:hover .marquee-content {
-          animation-play-state: paused;
-        }
-
-        .marquee-item:hover img {
-          transform: scale(1.1);
-        }
-
-        @keyframes marquee-scroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(calc(-50% - 10px)); }
-        }
-
-        @media (max-width: 768px) {
-          .marquee-item { width: 250px; height: 250px; margin-right: 15px; }
-          @keyframes marquee-scroll {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(calc(-50% - 7.5px)); }
-          }
-        }
-
-        @media (max-width: 992px) {
-          .hero-grid, .legacy-grid {
-            grid-template-columns: 1fr;
-            text-align: center;
-            gap: 40px;
-          }
-          .hero { height: auto; padding: 140px 0 80px; }
-          .hero-h1 { font-size: 3rem; margin-bottom: 1.5rem; }
-          .hero-p { font-size: 1.1rem; margin-bottom: 2.5rem; }
-          .hero-actions { justify-content: center; }
-          .gold-rule { margin: 0 auto 1.5rem; }
-          .legacy-image-frame { order: -1; }
-          .section-title { font-size: 2.5rem; }
-        }
-
-        @media (max-width: 480px) {
-           .hero-h1 { font-size: 2.5rem; }
-           .hero-actions { flex-direction: column; gap: 15px; }
-           .hero-actions .gold-button, .hero-actions .outline-button { width: 100%; }
-        }
-      `}</style>
-    </div>
-  )
+      {/* ── Delivery promise ─────────────────────────────── */}
+      <section className="section section--tight section--white">
+        <div className="container delivery-strip">
+          <div className="delivery-strip__item">
+            <Clock size={22} />
+            <div>
+              <h3>Dispatched within 24 hours</h3>
+              <p>Orders placed before 4 PM go out the same day, Monday to Saturday.</p>
+            </div>
+          </div>
+          <div className="delivery-strip__item">
+            <Truck size={22} />
+            <div>
+              <h3>Free delivery over {formatPrice(delivery.freeThresholdPaise)}</h3>
+              <p>
+                Flat {formatPrice(delivery.feePaise)} below that. Gift boxes and commercial packs
+                always ship free.
+              </p>
+            </div>
+          </div>
+          <div className="delivery-strip__item">
+            <ShieldCheck size={22} />
+            <div>
+              <h3>Secure payments</h3>
+              <p>UPI, cards, net banking and wallets via Razorpay. Cash on delivery available.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
 }
-
-export default Home
