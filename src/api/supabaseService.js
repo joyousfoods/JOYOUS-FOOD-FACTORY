@@ -2,19 +2,30 @@ import { supabase } from '../lib/supabase';
 import { PRODUCTS, CATEGORIES } from '../data/products';
 
 export const supabaseAuthApi = {
-  async register({ email, password, name }) {
+  async register({ email, password, name, phone }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name } },
+      options: { data: { name, phone: phone || '' } },
     });
     if (error) throw error;
     if (data.user) {
-      await supabase.from('profiles').upsert([
-        { id: data.user.id, name, email },
-      ]);
+      try {
+        await supabase.from('profiles').upsert([
+          { id: data.user.id, name, email, phone: phone || '' },
+        ]);
+      } catch {
+        /* non-fatal: user metadata holds name & phone fallback */
+      }
     }
-    return { user: { id: data.user?.id, email, name } };
+    return {
+      user: {
+        id: data.user?.id,
+        email,
+        name,
+        phone: phone || '',
+      },
+    };
   },
 
   async login({ email, password }) {
@@ -23,8 +34,34 @@ export const supabaseAuthApi = {
       password,
     });
     if (error) throw error;
-    const name = data.user?.user_metadata?.name || email.split('@')[0];
-    return { user: { id: data.user?.id, email: data.user?.email, name } };
+
+    const user = data.user;
+    let name = user?.user_metadata?.name || email.split('@')[0];
+    let phone = user?.user_metadata?.phone || '';
+
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profile) {
+        if (profile.name) name = profile.name;
+        if (profile.phone) phone = profile.phone;
+      }
+    } catch {
+      /* non-fatal fallback to user_metadata */
+    }
+
+    return {
+      user: {
+        id: user?.id,
+        email: user?.email,
+        name,
+        phone,
+      },
+    };
   },
 
   async logout() {
@@ -37,19 +74,30 @@ export const supabaseAuthApi = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { user: null };
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+    let name = user.user_metadata?.name || user.email.split('@')[0];
+    let phone = user.user_metadata?.phone || '';
 
-    const name = profile?.name || user.user_metadata?.name || user.email.split('@')[0];
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profile) {
+        if (profile.name) name = profile.name;
+        if (profile.phone) phone = profile.phone;
+      }
+    } catch {
+      /* fallback to user_metadata */
+    }
+
     return {
       user: {
         id: user.id,
         email: user.email,
         name,
-        phone: profile?.phone || '',
+        phone,
       },
     };
   },
@@ -58,14 +106,46 @@ export const supabaseAuthApi = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .upsert([{ id: user.id, email: user.email, ...payload }])
-      .select()
-      .single();
+    // Update user metadata in auth.users
+    await supabase.auth.updateUser({
+      data: {
+        ...(payload.name ? { name: payload.name } : {}),
+        ...(payload.phone !== undefined ? { phone: payload.phone } : {}),
+      },
+    });
 
+    let updatedName = payload.name || user.user_metadata?.name || user.email.split('@')[0];
+    let updatedPhone = payload.phone !== undefined ? payload.phone : user.user_metadata?.phone || '';
+
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .upsert([{ id: user.id, email: user.email, ...payload }])
+        .select()
+        .maybeSingle();
+
+      if (!error && profile) {
+        if (profile.name) updatedName = profile.name;
+        if (profile.phone) updatedPhone = profile.phone;
+      }
+    } catch {
+      /* non-fatal fallback */
+    }
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: updatedName,
+        phone: updatedPhone,
+      },
+    };
+  },
+
+  async changePassword({ newPassword }) {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) throw error;
-    return { user: { id: user.id, email: user.email, name: data.name, phone: data.phone } };
+    return { success: true };
   },
 };
 

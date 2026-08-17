@@ -1,5 +1,5 @@
-import { api } from './client.js';
-import { isSupabaseConfigured } from '../lib/supabase.js';
+import { api, ApiError } from './client.js';
+import { isSupabaseConfigured, getSupabaseConfigError } from '../lib/supabase.js';
 import {
   supabaseAuthApi,
   supabaseProductApi,
@@ -14,28 +14,45 @@ import { PRODUCTS, CATEGORIES, filterProducts } from '../data/products.js';
  * requests are routed to Supabase PostgreSQL & Supabase Auth.
  */
 
+const handleUnconfiguredAuth = () => {
+  const errText = getSupabaseConfigError();
+  throw new ApiError(
+    errText || 'Authentication configuration is missing. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.',
+    { code: 'CONFIG_ERROR' }
+  );
+};
+
 export const authApi = {
   register: (payload) => {
     if (isSupabaseConfigured()) return supabaseAuthApi.register(payload);
+    if (!import.meta.env.VITE_API_URL) handleUnconfiguredAuth();
     return api.post('/api/auth/register', payload);
   },
   login: (payload) => {
     if (isSupabaseConfigured()) return supabaseAuthApi.login(payload);
+    if (!import.meta.env.VITE_API_URL) handleUnconfiguredAuth();
     return api.post('/api/auth/login', payload);
   },
   logout: () => {
     if (isSupabaseConfigured()) return supabaseAuthApi.logout();
+    if (!import.meta.env.VITE_API_URL) return Promise.resolve({ success: true });
     return api.post('/api/auth/logout');
   },
   me: () => {
     if (isSupabaseConfigured()) return supabaseAuthApi.me();
+    if (!import.meta.env.VITE_API_URL) return Promise.resolve({ user: null });
     return api.get('/api/auth/me');
   },
   updateProfile: (payload) => {
     if (isSupabaseConfigured()) return supabaseAuthApi.updateProfile(payload);
+    if (!import.meta.env.VITE_API_URL) handleUnconfiguredAuth();
     return api.patch('/api/auth/me', payload);
   },
-  changePassword: (payload) => api.post('/api/auth/change-password', payload),
+  changePassword: (payload) => {
+    if (isSupabaseConfigured()) return supabaseAuthApi.changePassword(payload);
+    if (!import.meta.env.VITE_API_URL) handleUnconfiguredAuth();
+    return api.post('/api/auth/change-password', payload);
+  },
 };
 
 export const productApi = {

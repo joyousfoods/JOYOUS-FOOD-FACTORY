@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { authApi } from '../api';
 import { api, setAccessToken, onAuthExpired, clearGuestToken } from '../api/client';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
 
 const AuthContext = createContext(null);
 
@@ -12,7 +13,7 @@ export const useAuth = () => {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  // `initialising` covers the silent refresh on first paint — routes wait
+  // `initialising` covers the silent session restore on first paint — routes wait
   // for it so a signed-in user is never bounced to /login on reload.
   const [initialising, setInitialising] = useState(true);
 
@@ -21,12 +22,16 @@ export function AuthProvider({ children }) {
 
     (async () => {
       try {
-        // The refresh token lives in an httpOnly cookie, so this succeeds
-        // on a page reload without any token in localStorage.
-        const token = await api.refreshAccessToken();
-        if (token && !cancelled) {
+        if (isSupabaseConfigured()) {
           const { user: me } = await authApi.me();
           if (!cancelled) setUser(me);
+        } else {
+          // Legacy express backend silent refresh check
+          const token = await api.refreshAccessToken();
+          if (token && !cancelled) {
+            const { user: me } = await authApi.me();
+            if (!cancelled) setUser(me);
+          }
         }
       } catch {
         if (!cancelled) setUser(null);
@@ -40,14 +45,34 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  // The client tells us when a refresh finally fails mid-session.
+  // Listen for Supabase session changes (sign in, sign out, token refresh)
+  useEffect(() => {
+    if (!isSupabaseConfigured() || !supabase) return;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
+      if (event === 'SIGNED_OUT') {
+        setUser(null);
+      } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        try {
+          const { user: me } = await authApi.me();
+          setUser(me);
+        } catch {
+          /* ignore error in background listener */
+        }
+      }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, []);
+
+  // The client tells us when a refresh finally fails mid-session (for legacy mode)
   useEffect(() => onAuthExpired(() => setUser(null)), []);
 
   const applySession = useCallback((session) => {
-    setAccessToken(session.accessToken);
+    if (session?.accessToken) setAccessToken(session.accessToken);
     setUser(session.user);
-    // The guest cart has been merged server-side; drop the local token so
-    // a later sign-out starts from a clean guest cart.
     clearGuestToken();
   }, []);
 
@@ -102,3 +127,4 @@ export function AuthProvider({ children }) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
+
